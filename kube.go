@@ -33,3 +33,29 @@ func getAllDeploymentContainerImages(deployment v1.Deployment) []string {
 
 	return images
 }
+
+// List all statefulsets in a namespace
+func getStatefulSets(client kubernetes.Interface, namespace string) []v1.StatefulSet {
+	statefulSetsClient := client.AppsV1().StatefulSets(namespace)
+	statefulsets, err := statefulSetsClient.List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		panic(err)
+	}
+
+	return statefulsets.Items
+}
+
+// Returns all images in a deployment spec, including InitContainers
+func getAllStatefulSetContainerImages(statefulSet v1.StatefulSet) []string {
+	var images []string
+
+	for _, initContainer := range statefulSet.Spec.Template.Spec.InitContainers {
+		images = append(images, initContainer.Image)
+	}
+
+	for _, container := range statefulSet.Spec.Template.Spec.Containers {
+		images = append(images, container.Image)
+	}
+
+	return images
+}

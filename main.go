@@ -25,10 +25,11 @@ func main() {
 	}
 
 	deployments := getDeployments(client, *targetNamespace)
+	statefulSets := getStatefulSets(client, *targetNamespace)
 
 	var wg sync.WaitGroup
 	queue := make(chan T, 1)
-	wg.Add(len(deployments))
+	wg.Add(len(deployments) + len(statefulSets))
 
 	for _, d := range deployments {
 		go func (d v1.Deployment) {
@@ -44,6 +45,22 @@ func main() {
 			}
 			queue <- T(outputs)
 		}(d)
+	}
+
+	for _, s := range statefulSets {
+		go func (s v1.StatefulSet) {
+			containers := getAllStatefulSetContainerImages(s)
+			var outputs []Output
+			for _, c := range containers {
+				architectures, err := getImageArch(cli, c)
+				if (err != nil) {
+					fmt.Println(err)
+					continue
+				}
+				outputs = append(outputs, Output{s.Name, s.Namespace, "StatefulSet", c, architectures})
+			}
+			queue <- T(outputs)
+		}(s)
 	}
 
 	go func() {

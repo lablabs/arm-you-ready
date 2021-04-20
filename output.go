@@ -13,7 +13,7 @@ func renderTable(targetArchitecture string, outputs []Output) {
 
 	for _, o := range outputs {
 		t.AppendRows([]table.Row{
-			{o.Name, o.Namespace, "Deployment", o.Image, architectureIsSupported(targetArchitecture, o.Architectures), o.Architectures },
+			{o.Name, o.Namespace, o.Resource, o.Image, architectureIsSupported(targetArchitecture, o.Architectures), o.Architectures },
 		})
 	}
 
